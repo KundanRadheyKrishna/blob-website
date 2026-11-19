@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Post</title>
+    <link rel="stylesheet" href="/css/output.css">
+</head>
+
+<body class="min-h-screen bg-gray-100">
+
+    <div class="mx-auto max-w-xl p-5">
+
+        <h1 class="mb-5 text-2xl font-bold text-blue-600">
+            Create New Post
+        </h1>
+
+        <% if (isLoggedIn) { %>
+
+            <form action="/posts" enctype="multipart/form-data" method="POST" class="rounded-xl border bg-white p-5 shadow-sm">
+
+                <textarea name="content" placeholder="What's on your mind?" maxlength="2000" required
+                    class="min-h-40 w-full resize-y rounded-lg border p-3 outline-none focus:border-blue-600"></textarea>
+                <input type="file" name="image" id="image" accept="image/jpeg,image/png,image/webp">
+
+                <div class="mt-4 flex items-center justify-between">
+
+                    <a href="/" class="rounded-lg border px-4 py-2 text-gray-700">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700">
+                        Create Post
+                    </button>
+
+                </div>
+
+            </form>
+
+            <% } else { %>
+
+                <p>Please login to create a post.</p>
+
+                <a href="/login" class="text-blue-600">
+                    Login
+                </a>
+
+                <% } %>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Feed</title>
+    <link rel="stylesheet" href="/css/output.css">
+</head>
+
+<body class="min-h-screen bg-slate-100 text-slate-800">
+
+    <!-- Navbar -->
+    <header class="flex h-16 items-center justify-between bg-white px-6">
+
+        <a href="/" class="text-2xl font-bold text-blue-600">
+            Social.
+        </a>
+
+        <div class="flex items-center gap-3">
+
+            <% if (isLoggedIn) { %>
+
+                <!-- User logged in -->
+                <form action="/logout" method="post">
+                    <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-white">
+                        Logout
+                    </button>
+                </form>
+                <% if (isLoggedIn) { %>
+
+                    <a href="/post" class="rounded-lg bg-blue-600 px-4 py-2 text-white">
+                        Create Post
+                    </a>
+
+                    <% } %>
+
+                        <% } else { %>
+
+                            <!-- User not logged in -->
+                            <a href="/register" class="rounded-lg bg-blue-600 px-4 py-2 text-white">
+                                Create Account
+                            </a>
+
+                            <a href="/login" class="rounded-lg bg-blue-600 px-4 py-2 text-white">
+                                Login
+                            </a>
+
+                            <% } %>
+
+        </div>
+
+    </header>
+
+
+    <!-- Main Feed -->
+
+    <main class="mx-auto max-w-7xl p-4">
+        <!-- All Posts: Visible to everyone -->
+        <section class="flex flex-wrap items-start gap-1">
+            <% posts.forEach(post=> { %>
+
+                <article
+                    class="w-full overflow-hidden rounded-lg bg-white sm:w-[calc(50%-2px)] lg:w-[calc(33.333%-3px)]">
+
+                    <!-- Username -->
+                    <div class="p-3">
+
+                        <h2 class="font-bold text-blue-600">
+                            <%= post.username?.[0]?.username || 'Unknown User' %>
+                        </h2>
+
+                    </div>
+
+
+                    <!-- Written Post -->
+                    <div class="px-3 pb-3">
+
+                        <p class="text-sm text-slate-800 whitespace-pre-wrap">
+                            <%= post.content %>
+                        </p>
+
+                    </div>
+
+
+                    <!-- Image Section -->
+                    <div class="flex h-52 items-center justify-center bg-slate-100">
+
+                        <!-- Future image upload -->
+                        <% if (post.imageUrl) { %>
+                            <img src="<%= post.imageUrl %>" alt="Post image"
+                                class="w-full max-h-96 object-contain rounded-lg mt-3" loading="lazy">
+                            <% } %>
+
+                    </div>
+
+
+                    <!-- Like & Delete Buttons -->
+                    <div class="flex items-center justify-between p-3">
+
+                        <button type="button" class="font-semibold text-blue-600">
+                            Like
+                        </button>
+
+                        <% if ( currentUserId && post.user && String(post.user._id)===currentUserId ) { %>
+
+                            <button type="button" class="font-semibold text-blue-600">
+                                Delete
+                            </button>
+
+                            <% } %>
+
+                    </div>
+
+                </article>
+
+                <% }) %>
+
+        </section>
+
+    </main>
+
+
+</body>
+
+</html>
