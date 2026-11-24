@@ -1,0 +1,137 @@
+/* ==========================================================================
+   COSMIC HORIZON 3D GLASS & 60FPS EFFECTS
+   ========================================================================== */
+
+:root {
+    --bg-space: #070a14;
+    --card-glass: rgba(15, 23, 42, 0.72);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-border-glow: rgba(56, 189, 248, 0.35);
+    --accent-cyan: #38bdf8;
+    --accent-blue: #3b82f6;
+    --accent-violet: #8b5cf6;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+}
+
+/* Background Canvas */
+#bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 20%, #0d1527 0%, #060913 85%, #03050a 100%);
+}
+
+/* 3D Perspective & Preservation */
+.perspective-1000 {
+    perspective: 1000px;
+}
+
+.perspective-1500 {
+    perspective: 1500px;
+}
+
+.preserve-3d {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
+
+/* 3D Spatial Depth Layers */
+.layer-depth-1 {
+    transform: translateZ(15px);
+    transform-style: preserve-3d;
+}
+
+.layer-depth-2 {
+    transform: translateZ(28px);
+    transform-style: preserve-3d;
+}
+
+.layer-depth-3 {
+    transform: translateZ(42px);
+    transform-style: preserve-3d;
+}
+
+/* Glassmorphic Surfaces */
+.glass-panel {
+    background: var(--card-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-panel:hover {
+    border-color: var(--card-border-glow);
+    box-shadow: 0 25px 50px -12px rgba(56, 189, 248, 0.15),
+                0 0 25px rgba(56, 189, 248, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.glass-nav {
+    background: rgba(10, 15, 29, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* 3D Tilt Card Base */
+[data-tilt] {
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+/* Dynamic Specular Glare */
+.tilt-glare-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    mix-blend-mode: overlay;
+    z-index: 50;
+}
+
+/* Luminous Glow Gradient Text */
+.text-glow-cyan {
+    text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Ambient Floating Orbs */
+.ambient-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #060913;
+}
+::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #38bdf8;
+}
