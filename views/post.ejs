@@ -56,7 +56,7 @@
     <div class="w-full max-w-xl">
 
         <div class="mb-6 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2 text-sm font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer">
+            <a href="/" id="back-link" class="flex items-center gap-2 text-sm font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer">
                 &larr; Back to Feed
             </a>
             <span class="text-xs font-semibold px-3 py-1 rounded-full bg-[#800020]/20 text-rose-300 border border-[#800020]/40">
@@ -66,7 +66,7 @@
 
         <% if (isLoggedIn) { %>
 
-            <form action="/posts" enctype="multipart/form-data" method="POST"
+            <form id="post-form" action="/posts" enctype="multipart/form-data" method="POST"
                 class="rounded-2xl border border-neutral-800 bg-[#121212] p-6 sm:p-8 shadow-xl">
 
                 <h1 class="text-2xl font-bold tracking-tight text-white mb-6">
@@ -99,21 +99,34 @@
                         <span id="file-name" class="text-xs text-neutral-400 truncate max-w-xs">Supports JPG, PNG, WEBP (Max 5MB)</span>
                     </div>
 
-                    <!-- Live Image Preview (Compact Thumbnail) -->
-                    <div id="preview-container" class="mt-4 hidden w-48 h-32 rounded-lg overflow-hidden border border-neutral-800 bg-neutral-900 shadow-md">
-                        <img id="preview-image" src="" alt="Preview" class="w-full h-full object-cover">
+                    <!-- Live Image Preview (0s Instant Preview with Remove Option) -->
+                    <div id="preview-wrapper" class="mt-4 hidden items-center gap-3">
+                        <div id="preview-container" class="relative w-48 h-32 rounded-lg overflow-hidden border border-neutral-800 bg-neutral-900 shadow-md">
+                            <img id="preview-image" src="" alt="Preview" class="w-full h-full object-cover">
+                            <button type="button" id="remove-image-btn" title="Remove image"
+                                class="absolute top-2 right-2 bg-black/80 hover:bg-[#800020] text-white p-1 rounded-full transition-colors cursor-pointer border border-neutral-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <button type="button" id="clear-image-btn" class="text-xs text-neutral-400 hover:text-rose-400 underline cursor-pointer transition-colors">
+                            Remove image
+                        </button>
                     </div>
                 </div>
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-between pt-4 border-t border-neutral-800">
-                    <a href="/" class="rounded-lg border border-neutral-800 bg-neutral-900 px-5 py-2.5 text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer">
+                    <a href="/" id="cancel-btn" class="rounded-lg border border-neutral-800 bg-neutral-900 px-5 py-2.5 text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer">
                         Cancel
                     </a>
 
                     <button type="submit" id="publish-btn"
                         class="btn-burgundy cursor-pointer rounded-lg px-6 py-2.5 text-sm font-semibold text-white shadow-md active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span id="publish-btn-text">Publish Post &rarr;</span>
+                        <span id="publish-btn-text" class="flex items-center gap-2">
+                            <span>Publish Post &rarr;</span>
+                        </span>
                     </button>
                 </div>
 
@@ -135,22 +148,114 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const postForm = document.getElementById('post-form');
             const fileInput = document.getElementById('image');
             const fileName = document.getElementById('file-name');
-            const previewContainer = document.getElementById('preview-container');
+            const previewWrapper = document.getElementById('preview-wrapper');
             const previewImage = document.getElementById('preview-image');
+            const removeImageBtn = document.getElementById('remove-image-btn');
+            const clearImageBtn = document.getElementById('clear-image-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const backLink = document.getElementById('back-link');
             const publishBtn = document.getElementById('publish-btn');
             const publishBtnText = document.getElementById('publish-btn-text');
             const imageUrlInput = document.getElementById('imageUrl');
             const publicIdInput = document.getElementById('publicId');
 
+            let uploadPromise = null;
+            let previewUrl = null;
+            let isSubmitting = false;
+            let uploadAbortController = null;
+
+            function deleteImageOnServer(id, useBeacon = false) {
+                if (!id) return;
+                const url = '/api/delete-image';
+                const payload = JSON.stringify({ publicId: id });
+
+                if (useBeacon && navigator.sendBeacon) {
+                    const blob = new Blob([payload], { type: 'application/json' });
+                    navigator.sendBeacon(url, blob);
+                } else {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payload,
+                        keepalive: true
+                    }).catch(() => {});
+                }
+            }
+
+            function clearSelectedImage() {
+                if (uploadAbortController) {
+                    uploadAbortController.abort();
+                    uploadAbortController = null;
+                }
+                uploadPromise = null;
+
+                const currentPublicId = publicIdInput ? publicIdInput.value : null;
+                if (currentPublicId) {
+                    deleteImageOnServer(currentPublicId, false);
+                }
+
+                if (imageUrlInput) imageUrlInput.value = '';
+                if (publicIdInput) publicIdInput.value = '';
+
+                if (previewUrl) {
+                    URL.revokeObjectURL(previewUrl);
+                    previewUrl = null;
+                }
+
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+
+                if (previewWrapper) {
+                    previewWrapper.classList.add('hidden');
+                    previewWrapper.classList.remove('flex');
+                }
+
+                if (previewImage) {
+                    previewImage.src = '';
+                }
+
+                if (fileName) {
+                    fileName.textContent = 'Supports JPG, PNG, WEBP (Max 5MB)';
+                    fileName.classList.remove('text-neutral-200');
+                    fileName.classList.add('text-neutral-400');
+                }
+            }
+
+            if (removeImageBtn) {
+                removeImageBtn.addEventListener('click', clearSelectedImage);
+            }
+            if (clearImageBtn) {
+                clearImageBtn.addEventListener('click', clearSelectedImage);
+            }
+
             if (fileInput) {
-                fileInput.addEventListener('change', async () => {
+                fileInput.addEventListener('change', () => {
                     if (!fileInput.files || !fileInput.files[0]) {
                         return;
                     }
 
                     const file = fileInput.files[0];
+
+                    // Clean up previous image & abort prior upload if any
+                    if (uploadAbortController) {
+                        uploadAbortController.abort();
+                        uploadAbortController = null;
+                    }
+                    const previousPublicId = publicIdInput ? publicIdInput.value : null;
+                    if (previousPublicId) {
+                        deleteImageOnServer(previousPublicId, false);
+                    }
+                    if (imageUrlInput) imageUrlInput.value = '';
+                    if (publicIdInput) publicIdInput.value = '';
+
+                    if (previewUrl) {
+                        URL.revokeObjectURL(previewUrl);
+                        previewUrl = null;
+                    }
 
                     // Update filename display
                     if (fileName) {
@@ -159,53 +264,128 @@
                         fileName.classList.add('text-neutral-200');
                     }
 
-                    // Immediately show image preview
-                    if (previewImage && previewContainer) {
-                        previewImage.src = URL.createObjectURL(file);
-                        previewContainer.classList.remove('hidden');
+                    // 1. Instant 0s Preview using URL.createObjectURL(file)
+                    previewUrl = URL.createObjectURL(file);
+                    if (previewImage) {
+                        previewImage.src = previewUrl;
+                    }
+                    if (previewWrapper) {
+                        previewWrapper.classList.remove('hidden');
+                        previewWrapper.classList.add('flex');
                     }
 
-                    // Disable Publish button and change text to "Loading..."
-                    if (publishBtn) {
-                        publishBtn.disabled = true;
-                    }
-                    if (publishBtnText) {
-                        publishBtnText.textContent = 'Loading...';
-                    }
-
-                    // Reset hidden inputs for new upload
-                    if (imageUrlInput) imageUrlInput.value = '';
-                    if (publicIdInput) publicIdInput.value = '';
-
-                    // Upload in background
+                    // 2. Background Upload to POST /api/upload-image
                     const formData = new FormData();
                     formData.append('image', file);
 
-                    try {
-                        const response = await fetch('/api/upload-image', {
-                            method: 'POST',
-                            body: formData
-                        });
+                    const abortController = new AbortController();
+                    uploadAbortController = abortController;
 
+                    uploadPromise = fetch('/api/upload-image', {
+                        method: 'POST',
+                        body: formData,
+                        signal: abortController.signal
+                    })
+                    .then(async (response) => {
                         if (!response.ok) {
                             const errData = await response.json().catch(() => ({}));
                             throw new Error(errData.error || 'Upload failed');
                         }
-
-                        const data = await response.json();
-                        if (imageUrlInput) imageUrlInput.value = data.imageUrl || '';
-                        if (publicIdInput) publicIdInput.value = data.publicId || '';
-                    } catch (error) {
-                        console.error('Image upload error:', error);
-                        alert('Image upload failed: ' + (error.message || 'Please try again.'));
-                    } finally {
-                        if (publishBtn) {
-                            publishBtn.disabled = false;
+                        return response.json();
+                    })
+                    .then((data) => {
+                        if (data && data.imageUrl && data.publicId) {
+                            if (imageUrlInput) imageUrlInput.value = data.imageUrl;
+                            if (publicIdInput) publicIdInput.value = data.publicId;
                         }
-                        if (publishBtnText) {
-                            publishBtnText.textContent = 'Publish Post';
+                        return data;
+                    })
+                    .catch((error) => {
+                        if (error.name === 'AbortError') {
+                            return null;
+                        }
+                        console.error('Image upload error:', error);
+                        throw error;
+                    })
+                    .finally(() => {
+                        uploadPromise = null;
+                        uploadAbortController = null;
+                    });
+                });
+            }
+
+            // Cleanup on Cancel / Back navigation
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    const id = publicIdInput ? publicIdInput.value : null;
+                    if (id) {
+                        deleteImageOnServer(id, true);
+                        publicIdInput.value = '';
+                    }
+                });
+            }
+
+            if (backLink) {
+                backLink.addEventListener('click', () => {
+                    const id = publicIdInput ? publicIdInput.value : null;
+                    if (id) {
+                        deleteImageOnServer(id, true);
+                        publicIdInput.value = '';
+                    }
+                });
+            }
+
+            window.addEventListener('pagehide', () => {
+                const id = publicIdInput ? publicIdInput.value : null;
+                if (!isSubmitting && id) {
+                    deleteImageOnServer(id, true);
+                }
+            });
+
+            window.addEventListener('beforeunload', () => {
+                const id = publicIdInput ? publicIdInput.value : null;
+                if (!isSubmitting && id) {
+                    deleteImageOnServer(id, true);
+                }
+            });
+
+            // Form Submit: Await uploadPromise & show "Publishing..." animation
+            if (postForm) {
+                postForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    // Immediately disable the button and show "Publishing..." loading animation
+                    if (publishBtn) {
+                        publishBtn.disabled = true;
+                    }
+                    if (publishBtnText) {
+                        publishBtnText.innerHTML = `
+                            <svg class="animate-spin h-4 w-4 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span>Publishing...</span>
+                        `;
+                    }
+
+                    // Await background upload if ongoing to prevent race condition
+                    if (uploadPromise) {
+                        try {
+                            await uploadPromise;
+                        } catch (error) {
+                            alert('Image upload failed: ' + (error.message || 'Please try selecting the image again.'));
+                            if (publishBtn) {
+                                publishBtn.disabled = false;
+                            }
+                            if (publishBtnText) {
+                                publishBtnText.innerHTML = '<span>Publish Post &rarr;</span>';
+                            }
+                            return;
                         }
                     }
+
+                    isSubmitting = true;
+                    postForm.submit();
                 });
             }
         });

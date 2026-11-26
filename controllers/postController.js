@@ -49,6 +49,29 @@ const uploadImage = async (req, res) => {
     }
 };
 
+const deleteImage = async (req, res) => {
+    try {
+        let publicId = req.body?.publicId || req.query?.publicId;
+        if (!publicId && typeof req.body === 'string') {
+            try {
+                const parsed = JSON.parse(req.body);
+                publicId = parsed.publicId;
+            } catch (e) {}
+        }
+
+        if (!publicId || typeof publicId !== 'string') {
+            return res.status(400).json({ error: 'Invalid publicId' });
+        }
+
+        await destroyCloudinaryImage(publicId);
+
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Delete image error:', error);
+        return res.status(500).json({ error: 'Failed to delete image' });
+    }
+};
+
 const createPost = async (req, res) => {
     try {
         const content = req.body.content;
@@ -84,6 +107,8 @@ const createPost = async (req, res) => {
 module.exports = {
     getFeed,
     getCreatePostPage,
+    uploadImage,
+    deleteImage,
     createPost,
-    uploadImage
+    destroyCloudinaryImage
 };

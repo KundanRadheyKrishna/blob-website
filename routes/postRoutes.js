@@ -6,6 +6,7 @@ const postController = require('../controllers/postController');
 
 router.get('/post', requireLogin, postController.getCreatePostPage);
 router.post('/posts', requireLogin, upload.none(), postController.createPost);
+
 router.post('/api/upload-image', requireLogin, (req, res, next) => {
     upload.single('image')(req, res, (err) => {
         if (err) {
@@ -14,5 +15,18 @@ router.post('/api/upload-image', requireLogin, (req, res, next) => {
         next();
     });
 }, postController.uploadImage);
+
+router.post('/api/delete-image',
+    requireLogin,
+    express.json(),
+    express.urlencoded({ extended: true }),
+    express.text({ type: ['text/*', 'application/json'] }),
+    (req, res, next) => {
+        upload.none()(req, res, () => {
+            next();
+        });
+    },
+    postController.deleteImage
+);
 
 module.exports = router;
