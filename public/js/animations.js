@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const files = e.dataTransfer.files;
             if (files && files.length > 0) {
                 fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
                 updatePreview(files[0]);
             }
         });

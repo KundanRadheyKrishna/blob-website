@@ -1,3 +1,4 @@
+const sharp = require('sharp');
 const PostModel = require('../models/post');
 const { uploadToCloudinary, destroyCloudinaryImage } = require('../services/cloudinaryService');
 
@@ -24,9 +25,31 @@ const getCreatePostPage = (req, res) => {
     res.render('post');
 };
 
-const createPost = async (req, res) => {
-    let uploadedImage = null;
+const uploadImage = async (req, res) => {
+    try {
+        if (!req.file || !req.file.buffer) {
+            return res.status(400).json({ error: 'No image file provided' });
+        }
 
+        const compressedBuffer = await sharp(req.file.buffer)
+            .rotate()
+            .resize({ width: 1200, withoutEnlargement: true })
+            .webp({ quality: 82 })
+            .toBuffer();
+
+        const uploadResult = await uploadToCloudinary(compressedBuffer);
+
+        return res.status(200).json({
+            imageUrl: uploadResult.secure_url || uploadResult.url,
+            publicId: uploadResult.public_id
+        });
+    } catch (error) {
+        console.error('Image upload error:', error);
+        return res.status(500).json({ error: 'Failed to process and upload image' });
+    }
+};
+
+const createPost = async (req, res) => {
     try {
         const content = req.body.content;
 
@@ -39,50 +62,21 @@ const createPost = async (req, res) => {
             return res.status(400).send('Invalid post content');
         }
 
-        let imageUrl = null;
-        let publicId = null;
-
-        // Check whether user selected an image
-        if (req.file) {
-            const { fileTypeFromBuffer } = await import('file-type');
-
-            const fileType = await fileTypeFromBuffer(req.file.buffer);
-
-            const allowedTypes = [
-                'image/jpeg',
-                'image/png',
-                'image/webp'
-            ];
-
-            if (!fileType || !allowedTypes.includes(fileType.mime)) {
-                return res.status(400).send('Invalid image file');
-            }
-
-            // Upload image to Cloudinary
-            uploadedImage = await uploadToCloudinary(req.file.buffer);
-
-            imageUrl = uploadedImage.secure_url;
-            publicId = uploadedImage.public_id;
-        }
+        const imageUrl = req.body.imageUrl || null;
+        const publicId = req.body.publicId || null;
 
         // Save post details in MongoDB
         await PostModel.create({
             content: content.trim(),
             username: [req.id],
-            imageUrl: imageUrl,
-            publicId: publicId
+            imageUrl: imageUrl || null,
+            publicId: publicId || null
         });
 
         return res.redirect(303, '/');
 
     } catch (error) {
         console.error('Post creation error:', error);
-
-        // Delete Cloudinary image if MongoDB saving fails
-        if (uploadedImage?.public_id) {
-            await destroyCloudinaryImage(uploadedImage.public_id);
-        }
-
         return res.status(500).send('Unable to create post');
     }
 };
@@ -90,5 +84,6 @@ const createPost = async (req, res) => {
 module.exports = {
     getFeed,
     getCreatePostPage,
-    createPost
+    createPost,
+    uploadImage
 };

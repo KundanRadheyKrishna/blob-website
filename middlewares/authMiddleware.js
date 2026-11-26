@@ -22,6 +22,9 @@ function attachUser(req, res, next) {
 
 function requireLogin(req, res, next) {
     if (!req.id) {
+        if (req.originalUrl?.startsWith('/api') || req.path?.startsWith('/api')) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
         return res.redirect('/login');
     }
     next();
