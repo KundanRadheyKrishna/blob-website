@@ -48,6 +48,113 @@
             border-color: #9f1239 !important;
             background-color: rgba(159, 18, 57, 0.15) !important;
         }
+
+        /* From Uiverse.io by chicogale - https://uiverse.io/chicogale/brown-panda-75 | MIT License, Copyright (c) chicogale (federico) */
+        .cyber-toggle-wrapper {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 4px;
+        }
+
+        .cyber-toggle {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .cyber-toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .cyber-toggle-slider {
+            position: absolute;
+            inset: 0;
+            background-color: #141416;
+            border: 1px solid #26262b;
+            border-radius: 26px;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+        }
+
+        /* Glowing Cyber Dots / Particles inside the track */
+        .cyber-particles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .cyber-dot {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #52525b;
+            opacity: 0.3;
+            transition: all 0.35s ease;
+        }
+
+        .cyber-dot.p1 { width: 3px; height: 3px; top: 6px; left: 13px; }
+        .cyber-dot.p2 { width: 3.5px; height: 3.5px; bottom: 5px; left: 21px; }
+        .cyber-dot.p3 { width: 3px; height: 3px; top: 7px; right: 17px; }
+        .cyber-dot.p4 { width: 2.5px; height: 2.5px; bottom: 6px; right: 10px; }
+
+        /* The Moving Thumb */
+        .cyber-thumb {
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: #d4d4d8;
+            border-radius: 50%;
+            transition: transform 0.35s cubic-bezier(0.68, -0.2, 0.265, 1.35),
+                        background 0.35s ease,
+                        box-shadow 0.35s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            z-index: 2;
+        }
+
+        /* Active / Checked State - Adapted from cyan/purple to Burgundy palette (#800020 / #9f1239) */
+        .cyber-toggle-input:checked + .cyber-toggle-slider {
+            background-color: #1a080f;
+            border-color: #9f1239;
+            box-shadow: 0 0 12px rgba(159, 18, 57, 0.45),
+                        inset 0 0 6px rgba(128, 0, 32, 0.35);
+        }
+
+        .cyber-toggle-input:checked + .cyber-toggle-slider .cyber-thumb {
+            transform: translateX(22px);
+            background: linear-gradient(135deg, #800020, #9f1239);
+            box-shadow: 0 0 10px #9f1239, 0 0 18px rgba(225, 29, 72, 0.55);
+        }
+
+        .cyber-toggle-input:checked + .cyber-toggle-slider .cyber-dot {
+            background-color: #fb7185;
+            opacity: 0.95;
+            box-shadow: 0 0 6px #e11d48;
+        }
+
+        .cyber-toggle-input:checked + .cyber-toggle-slider .cyber-dot.p1 {
+            transform: scale(1.3) translateY(-1px);
+        }
+        .cyber-toggle-input:checked + .cyber-toggle-slider .cyber-dot.p2 {
+            transform: scale(1.2) translateX(1px);
+        }
+        .cyber-toggle-input:checked + .cyber-toggle-slider .cyber-dot.p3 {
+            transform: scale(1.4) translateY(1px);
+        }
+        .cyber-toggle-input:checked + .cyber-toggle-slider .cyber-dot.p4 {
+            transform: scale(1.2) translateX(-1px);
+        }
+
+        .cyber-toggle:hover .cyber-toggle-slider {
+            border-color: #9f1239;
+        }
     </style>
 </head>
 
@@ -73,6 +180,21 @@
                     Share with the Community
                 </h1>
 
+                <!-- Inline Error Alert Banner -->
+                <div id="form-error-banner" class="hidden mb-5 items-center justify-between gap-3 p-3.5 rounded-xl bg-[#800020]/20 border border-[#9f1239] text-rose-300 text-sm">
+                    <div class="flex items-center gap-2.5">
+                        <svg class="w-5 h-5 shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span id="form-error-text"></span>
+                    </div>
+                    <button type="button" id="close-error-banner" class="text-rose-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer" title="Dismiss error">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
                 <!-- Content Area -->
                 <div class="mb-5">
                     <textarea name="content" placeholder="What's happening in your universe?" maxlength="2000" required
@@ -96,6 +218,24 @@
                         <input type="file" id="image" accept="image/jpeg,image/png,image/webp" class="sr-only">
                         <input type="hidden" name="imageUrl" id="imageUrl">
                         <input type="hidden" name="publicId" id="publicId">
+
+                        <!-- From Uiverse.io by chicogale - https://uiverse.io/chicogale/brown-panda-75 | MIT License, Copyright (c) chicogale (federico) -->
+                        <div class="cyber-toggle-wrapper flex items-center gap-2.5 bg-neutral-900/80 px-3 py-1.5 rounded-lg border border-neutral-800">
+                            <label class="cyber-toggle" for="auto-caption-toggle" title="Toggle AI Auto-Captioning">
+                                <input type="checkbox" id="auto-caption-toggle" name="autoCaption" checked class="cyber-toggle-input">
+                                <span class="cyber-toggle-slider">
+                                    <span class="cyber-particles">
+                                        <span class="cyber-dot p1"></span>
+                                        <span class="cyber-dot p2"></span>
+                                        <span class="cyber-dot p3"></span>
+                                        <span class="cyber-dot p4"></span>
+                                    </span>
+                                    <span class="cyber-thumb"></span>
+                                </span>
+                            </label>
+                            <label for="auto-caption-toggle" class="cyber-toggle-label text-xs font-semibold text-neutral-300 cursor-pointer select-none">AI Auto-Caption</label>
+                        </div>
+
                         <span id="file-name" class="text-xs text-neutral-400 truncate max-w-xs">Supports JPG, PNG, WEBP (Max 5MB)</span>
                     </div>
 
@@ -149,6 +289,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const postForm = document.getElementById('post-form');
+            const contentTextarea = document.querySelector('textarea[name="content"]');
+            const autoCaptionToggle = document.getElementById('auto-caption-toggle');
+            const dropzone = document.getElementById('dropzone');
             const fileInput = document.getElementById('image');
             const fileName = document.getElementById('file-name');
             const previewWrapper = document.getElementById('preview-wrapper');
@@ -161,11 +304,126 @@
             const publishBtnText = document.getElementById('publish-btn-text');
             const imageUrlInput = document.getElementById('imageUrl');
             const publicIdInput = document.getElementById('publicId');
+            const formErrorBanner = document.getElementById('form-error-banner');
+            const formErrorText = document.getElementById('form-error-text');
+            const closeErrorBanner = document.getElementById('close-error-banner');
 
             let uploadPromise = null;
             let previewUrl = null;
             let isSubmitting = false;
             let uploadAbortController = null;
+            let captionInterval = null;
+            let isAutoCaptioning = false;
+            let captionRequestId = 0;
+
+            function showFormError(message) {
+                if (formErrorText) formErrorText.textContent = message;
+                if (formErrorBanner) {
+                    formErrorBanner.classList.remove('hidden');
+                    formErrorBanner.classList.add('flex');
+                }
+            }
+
+            function hideFormError() {
+                if (formErrorBanner) {
+                    formErrorBanner.classList.add('hidden');
+                    formErrorBanner.classList.remove('flex');
+                }
+            }
+
+            if (closeErrorBanner) {
+                closeErrorBanner.addEventListener('click', hideFormError);
+            }
+
+            function disableDropzone() {
+                if (dropzone) {
+                    dropzone.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                }
+                if (fileInput) {
+                    fileInput.disabled = true;
+                }
+            }
+
+            function enableDropzone() {
+                if (dropzone) {
+                    dropzone.classList.remove('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                }
+                if (fileInput) {
+                    fileInput.disabled = false;
+                }
+            }
+
+            function startAutoCaptionAnimation() {
+                if (captionInterval) {
+                    clearInterval(captionInterval);
+                    captionInterval = null;
+                }
+                isAutoCaptioning = true;
+                if (contentTextarea) {
+                    contentTextarea.readOnly = true;
+                    const baseText = 'Auto-caption is in progress';
+                    let dotCount = 3;
+                    contentTextarea.value = baseText + '...';
+                    captionInterval = setInterval(() => {
+                        dotCount = (dotCount % 3) + 1;
+                        contentTextarea.value = baseText + '.'.repeat(dotCount);
+                    }, 400);
+                }
+            }
+
+            function stopAutoCaptioning(clearProgressText = true) {
+                if (captionInterval) {
+                    clearInterval(captionInterval);
+                    captionInterval = null;
+                }
+                if (contentTextarea) {
+                    contentTextarea.readOnly = false;
+                    if (clearProgressText && contentTextarea.value.startsWith('Auto-caption is in progress')) {
+                        contentTextarea.value = '';
+                    }
+                }
+                isAutoCaptioning = false;
+            }
+
+            if (autoCaptionToggle) {
+                autoCaptionToggle.addEventListener('change', async () => {
+                    if (!autoCaptionToggle.checked) {
+                        // Immediately stop running interval, unlock textarea, clear in-progress placeholder,
+                        // and ignore any late-arriving caption from an in-flight upload
+                        captionRequestId++;
+                        stopAutoCaptioning(true);
+                    } else {
+                        // Toggled ON: if image already selected and textarea is empty, request caption
+                        if (imageUrlInput && imageUrlInput.value && contentTextarea && !contentTextarea.value.trim()) {
+                            const currentReqId = ++captionRequestId;
+                            startAutoCaptionAnimation();
+                            try {
+                                const res = await fetch('/api/generate-caption', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ imageUrl: imageUrlInput.value })
+                                });
+                                const data = await res.json().catch(() => ({}));
+                                // Ignore if user toggled OFF in the meantime or newer request started
+                                if (currentReqId !== captionRequestId || !autoCaptionToggle.checked) {
+                                    return;
+                                }
+                                const shouldPopulate = contentTextarea && (contentTextarea.value.startsWith('Auto-caption is in progress') || !contentTextarea.value.trim());
+                                stopAutoCaptioning(false);
+                                if (data && data.caption && shouldPopulate) {
+                                    contentTextarea.value = data.caption;
+                                } else if (shouldPopulate) {
+                                    contentTextarea.value = '';
+                                }
+                            } catch (err) {
+                                if (currentReqId === captionRequestId) {
+                                    stopAutoCaptioning(true);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
 
             function deleteImageOnServer(id, useBeacon = false) {
                 if (!id) return;
@@ -186,6 +444,10 @@
             }
 
             function clearSelectedImage() {
+                captionRequestId++;
+                stopAutoCaptioning(true);
+                enableDropzone();
+
                 if (uploadAbortController) {
                     uploadAbortController.abort();
                     uploadAbortController = null;
@@ -240,7 +502,15 @@
 
                     const file = fileInput.files[0];
 
-                    // Clean up previous image & abort prior upload if any
+                    // Disable dropzone label and input while image is active
+                    disableDropzone();
+                    hideFormError();
+
+                    // Clean up previous image, auto-caption & abort prior upload if any
+                    captionRequestId++;
+                    const currentReqId = captionRequestId;
+                    stopAutoCaptioning(true);
+
                     if (uploadAbortController) {
                         uploadAbortController.abort();
                         uploadAbortController = null;
@@ -274,9 +544,17 @@
                         previewWrapper.classList.add('flex');
                     }
 
+                    // Check if AI Auto-Caption is ON and textarea is empty
+                    const isAutoCaptionOn = autoCaptionToggle ? autoCaptionToggle.checked : false;
+
+                    if (isAutoCaptionOn && contentTextarea && !contentTextarea.value.trim()) {
+                        startAutoCaptionAnimation();
+                    }
+
                     // 2. Background Upload to POST /api/upload-image
                     const formData = new FormData();
                     formData.append('image', file);
+                    formData.append('autoCaption', isAutoCaptionOn ? 'true' : 'false');
 
                     const abortController = new AbortController();
                     uploadAbortController = abortController;
@@ -298,11 +576,33 @@
                             if (imageUrlInput) imageUrlInput.value = data.imageUrl;
                             if (publicIdInput) publicIdInput.value = data.publicId;
                         }
+
+                        // Handle caption response only if this request is still active and toggle is ON
+                        if (currentReqId === captionRequestId && autoCaptionToggle && autoCaptionToggle.checked) {
+                            if (isAutoCaptioning) {
+                                const isStillProgressText = contentTextarea && (contentTextarea.value.startsWith('Auto-caption is in progress') || !contentTextarea.value.trim());
+                                stopAutoCaptioning(false);
+                                if (data && data.caption && isStillProgressText) {
+                                    contentTextarea.value = data.caption;
+                                } else if (isStillProgressText) {
+                                    contentTextarea.value = '';
+                                }
+                            }
+                        } else {
+                            // If auto-caption was turned OFF in the meantime, ignore late-arriving caption
+                            if (contentTextarea && contentTextarea.value.startsWith('Auto-caption is in progress')) {
+                                stopAutoCaptioning(true);
+                            }
+                        }
+
                         return data;
                     })
                     .catch((error) => {
                         if (error.name === 'AbortError') {
                             return null;
+                        }
+                        if (currentReqId === captionRequestId) {
+                            stopAutoCaptioning(true);
                         }
                         console.error('Image upload error:', error);
                         throw error;
@@ -317,6 +617,8 @@
             // Cleanup on Cancel / Back navigation
             if (cancelBtn) {
                 cancelBtn.addEventListener('click', () => {
+                    captionRequestId++;
+                    stopAutoCaptioning(true);
                     const id = publicIdInput ? publicIdInput.value : null;
                     if (id) {
                         deleteImageOnServer(id, true);
@@ -327,6 +629,8 @@
 
             if (backLink) {
                 backLink.addEventListener('click', () => {
+                    captionRequestId++;
+                    stopAutoCaptioning(true);
                     const id = publicIdInput ? publicIdInput.value : null;
                     if (id) {
                         deleteImageOnServer(id, true);
@@ -349,10 +653,21 @@
                 }
             });
 
-            // Form Submit: Await uploadPromise & show "Publishing..." animation
+            function resetPublishBtn() {
+                if (publishBtn) {
+                    publishBtn.disabled = false;
+                }
+                if (publishBtnText) {
+                    publishBtnText.innerHTML = '<span>Publish Post &rarr;</span>';
+                }
+                isSubmitting = false;
+            }
+
+            // Form Submit: Await uploadPromise, validate client-side, submit via fetch to avoid raw 400/500 screens
             if (postForm) {
                 postForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
+                    hideFormError();
 
                     // Immediately disable the button and show "Publishing..." loading animation
                     if (publishBtn) {
@@ -373,19 +688,59 @@
                         try {
                             await uploadPromise;
                         } catch (error) {
-                            alert('Image upload failed: ' + (error.message || 'Please try selecting the image again.'));
-                            if (publishBtn) {
-                                publishBtn.disabled = false;
-                            }
-                            if (publishBtnText) {
-                                publishBtnText.innerHTML = '<span>Publish Post &rarr;</span>';
-                            }
+                            showFormError('Image upload failed: ' + (error.message || 'Please try selecting the image again.'));
+                            resetPublishBtn();
                             return;
                         }
                     }
 
-                    isSubmitting = true;
-                    postForm.submit();
+                    if (contentTextarea && contentTextarea.value.startsWith('Auto-caption is in progress')) {
+                        contentTextarea.value = '';
+                    }
+
+                    const content = contentTextarea ? contentTextarea.value.trim() : '';
+
+                    // Client validation before submit
+                    if (!content) {
+                        showFormError('Post content cannot be empty.');
+                        resetPublishBtn();
+                        return;
+                    }
+
+                    if (content.length > 2000) {
+                        showFormError('Post content exceeds the 2,000 character limit.');
+                        resetPublishBtn();
+                        return;
+                    }
+
+                    const imageUrl = imageUrlInput ? imageUrlInput.value : null;
+                    const publicId = publicIdInput ? publicIdInput.value : null;
+
+                    try {
+                        const response = await fetch('/posts', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ content, imageUrl, publicId })
+                        });
+
+                        const data = await response.json().catch(() => ({}));
+
+                        if (!response.ok) {
+                            showFormError(data.error || 'Unable to create post. Please try again.');
+                            resetPublishBtn();
+                            return;
+                        }
+
+                        isSubmitting = true;
+                        window.location.href = data.redirectUrl || '/';
+                    } catch (err) {
+                        console.error('Post submit error:', err);
+                        showFormError('Network error while creating post. Please try again.');
+                        resetPublishBtn();
+                    }
                 });
             }
         });

@@ -111,9 +111,9 @@
                         <!-- Image Section -->
                         <% if (post.imageUrl) { %>
                             <div class="px-4 pb-2 layer-depth-2">
-                                <div class="overflow-hidden rounded-xl border border-white/10 bg-slate-900/60 max-h-72 flex items-center justify-center">
-                                    <img src="<%= post.imageUrl %>" alt="Post image"
-                                        class="w-full h-full object-cover rounded-xl hover:scale-105 transition duration-500" loading="lazy">
+                                <div class="overflow-hidden rounded-xl border border-white/10 bg-slate-900/60 aspect-video w-full flex items-center justify-center">
+                                    <img src="<%= post.imageUrl %>" alt="Post image" width="600" height="338"
+                                        class="w-full h-full object-cover rounded-xl hover:scale-105 transition duration-500 aspect-video" loading="lazy">
                                 </div>
                             </div>
                         <% } %>

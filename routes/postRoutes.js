@@ -5,7 +5,14 @@ const { requireLogin } = require('../middlewares/authMiddleware');
 const postController = require('../controllers/postController');
 
 router.get('/post', requireLogin, postController.getCreatePostPage);
-router.post('/posts', requireLogin, upload.none(), postController.createPost);
+router.post('/posts', requireLogin, express.json(), express.urlencoded({ extended: true }), upload.none(), postController.createPost);
+
+router.post('/api/generate-caption',
+    requireLogin,
+    express.json(),
+    express.urlencoded({ extended: true }),
+    postController.generateCaption
+);
 
 router.post('/api/upload-image', requireLogin, (req, res, next) => {
     upload.single('image')(req, res, (err) => {
